@@ -3,6 +3,7 @@ import Home from "./screens/Home";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Login from "./screens/Login";
+import Signup from "./screens/Signup";
 
 
 function App() {
@@ -13,6 +14,7 @@ function App() {
     <Routes>
       <Route  path="/" element={<Home/>} />
       <Route  path="/login" element={<Login/>} />
+      <Route  path="/signup" element={<Signup/>} />
     </Routes>
      
      <Footer/>
