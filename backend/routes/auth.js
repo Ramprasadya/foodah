@@ -2,6 +2,9 @@ const express = require('express')
 const router = express.Router()
 const { body, validationResult } = require('express-validator');
 const User = require('../models/User')
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken')
+const JSON_TOKEN = "iaminnoida"
 // 
 //Route 1 ... creating a user using post method  : localhost:500/api/createuser
 
@@ -17,13 +20,33 @@ router.post('/createuser',[
     return res.status(400).json({errors: errors.array() });
   }
 
+  // Password Hashing
+  const salt  = await bcrypt.genSalt(10)
+  const secPassword = await bcrypt.hash(req.body.password,salt)
+  //  Creating a new user
    try {
-    let user =  User.create({
+      let user =await  User.create({
       name: req.body.name,
-      password: req.body.password,
+      password: secPassword,
       email : req.body.email,
       location :  req.body.email
-    }).then(res.json({success : req.body}))
+    })
+
+    // Passing the user id 
+    const data ={
+      user:{
+        id : user.id
+      }
+    }
+   
+    // sending the jwt in response 
+
+    const authToken = jwt.sign(data,JSON_TOKEN);
+
+
+    res.json({success : authToken})
+
+
    } catch (error) {
     console.log(error.massage)
     res.json({success : false})
@@ -50,15 +73,26 @@ router.post("/loginuser",[
     return res.status(400).json({error : "Please try to login with correct credentials "});
    }
    
-   if(!password === user.password ){
+   const passwordCompare = bcrypt.compare(password, user.password)
+
+   if(!passwordCompare ){
     return res.status(400).json({error : "Please try to login with correct credentials "});
    }
 
+   // Passing the user id 
+   const data ={
+    user:{
+      id : user.id
+    }
+  }
+//  sign in with jwt
+  const authToken = await jwt.sign(data,JSON_TOKEN)
 
-   res.json({success : true,})
+   res.json({success : authToken,})
 
  } catch (error) {
-  
+  console.log(error.massage)
+  res.status(500).send("Internal server error")
  }
 })
 
